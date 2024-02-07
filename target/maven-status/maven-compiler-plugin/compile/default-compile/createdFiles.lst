@@ -1,12 +1,9 @@
 org\lordalex\thebridgelcp\Utils\YmlParser.class
-org\lordalex\thebridgelcp\Utils\TagCommand.class
 org\lordalex\thebridgelcp\PlayerInfo.class
 org\lordalex\thebridgelcp\Utils\Config.class
 org\lordalex\thebridgelcp\Utils\ConfigTeam.class
 org\lordalex\thebridgelcp\Utils\CustomScoreboard.class
 org\lordalex\thebridgelcp\Utils\Events.class
-org\lordalex\thebridgelcp\Utils\ProtocolLibHook$1.class
-org\lordalex\thebridgelcp\Utils\ProtocolLibHook.class
 org\lordalex\thebridgelcp\TBTeam.class
 org\lordalex\thebridgelcp\TheBridgeLCP.class
 org\lordalex\thebridgelcp\Utils\GameUtil$1.class

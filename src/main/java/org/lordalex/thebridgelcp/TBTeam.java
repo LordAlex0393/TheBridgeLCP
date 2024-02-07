@@ -2,7 +2,6 @@ package org.lordalex.thebridgelcp;
 
 import org.bukkit.ChatColor;
 import org.lordalex.thebridgelcp.Utils.ColorUtil;
-import org.lordalex.thebridgelcp.Utils.ConfigTeam;
 
 import java.util.ArrayList;
 import java.util.List;

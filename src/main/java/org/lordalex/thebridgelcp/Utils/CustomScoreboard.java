@@ -4,10 +4,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.scoreboard.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 public class CustomScoreboard {
-    public static Scoreboard createGamingScoreboard(ArrayList<String> scores) {
+    public static Scoreboard createScoreboard(ArrayList<String> scores) {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         org.bukkit.scoreboard.Scoreboard scoreboard = manager.getNewScoreboard();
 

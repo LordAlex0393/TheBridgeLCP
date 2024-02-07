@@ -1,22 +1,15 @@
 package org.lordalex.thebridgelcp.Utils;
 
-import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.*;
-import org.bukkit.scoreboard.Scoreboard;
 import org.lordalex.thebridgelcp.PlayerInfo;
 import org.lordalex.thebridgelcp.TBTeam;
 import org.lordalex.thebridgelcp.TheBridgeLCP;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+
 
 public class GameUtil {
     private static int timer = 10;
@@ -86,8 +79,25 @@ public class GameUtil {
             pi.setTeam(TheBridgeLCP.teams.get(i % teamCount));
             TheBridgeLCP.teams.get(i % teamCount).getPlayers().add(pi);
             p.setPlayerListName(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getPlayerListName()));
-            p.sendMessage("Your team is " + TheBridgeLCP.teams.get(i % teamCount).getColor());
+            //p.sendMessage("Your team is " + TheBridgeLCP.teams.get(i % teamCount).getColor());
             i++;
+            ArrayList<String> scores = new ArrayList<>();
+            scores.add("    ");
+            for(TBTeam team : TheBridgeLCP.teams){
+                if(pi.getTeam().equals(team)){
+                    scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getActivePoints() + team.getInactivePoints() + "&a <= Вы"));
+                }
+                else{
+                    scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getActivePoints() + team.getInactivePoints()));
+                }
+            }
+            scores.add("   ");
+            scores.add(ColorUtil.getMessage("&fУбийств:&e 0"));
+            scores.add(ColorUtil.getMessage("&fОчков:&e 0"));
+            scores.add("  ");
+            scores.add(ColorUtil.getMessage("&fКарта:&e " + TheBridgeLCP.config.getName()));
+            Scoreboard scoreboard = CustomScoreboard.createScoreboard(scores);
+            p.setScoreboard(scoreboard);
 
 
         }
