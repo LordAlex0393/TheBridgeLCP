@@ -1,0 +1,8 @@
+name: TheBridgeLCP
+version: '1.0-SNAPSHOT'
+main: org.lordalex.thebridgelcp.TheBridgeLCP
+softdepend: [ ProtocolLib ]
+commands:
+  tag:
+    description: "Change a player tag above his head"
+    usage: "/tag <newTag/reset>"
