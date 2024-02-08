@@ -14,8 +14,7 @@ public class TBTeam {
     private String spawn;
     private List<String> portal;
     private ArrayList<PlayerInfo> players = new ArrayList<>();
-    private String activePoints;
-    private String inactivePoints;
+    private int points;
 
     public TBTeam(String id, String names, String color, int wool, String spawn, List<String> portal) {
         this.id = id;
@@ -24,24 +23,15 @@ public class TBTeam {
         this.wool = wool;
         this.spawn = spawn;
         this.portal = portal;
-        activePoints = ColorUtil.getMessage(ChatColor.getByChar(color) + "&l" + names.charAt(0) + " ");
-        inactivePoints = ColorUtil.getMessage("&7⬤⬤⬤⬤⬤");
+        this.points = 0;
     }
 
-    public String getActivePoints() {
-        return activePoints;
+    public int getPoints() {
+        return points;
     }
 
-    public void setActivePoints(String activePoints) {
-        this.activePoints = activePoints;
-    }
-
-    public String getInactivePoints() {
-        return inactivePoints;
-    }
-
-    public void setInactivePoints(String inactivePoints) {
-        this.inactivePoints = inactivePoints;
+    public void setPoints(int points) {
+        this.points = points;
     }
 
     public String getId() {

@@ -86,4 +86,13 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
     }
+
+    public static PlayerInfo getPlayerInfo(Player p){
+        for(PlayerInfo pi : players){
+            if(pi.getPlayer().equals(p)){
+                return pi;
+            }
+        }
+        return null;
+    }
 }

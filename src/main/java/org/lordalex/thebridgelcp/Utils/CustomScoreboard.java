@@ -10,10 +10,10 @@ public class CustomScoreboard {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         org.bukkit.scoreboard.Scoreboard scoreboard = manager.getNewScoreboard();
 
-        Objective objective = scoreboard.registerNewObjective("The Bridge", "Test");
+        Objective objective = scoreboard.registerNewObjective(ColorUtil.getMessage("&b&lThe Bridge"), "Test");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-        int i = 3 + scores.size();
+        int i = 2 + scores.size();
         for(String str : scores){
             objective.getScore(str).setScore(i);
             i--;

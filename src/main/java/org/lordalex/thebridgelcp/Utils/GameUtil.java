@@ -1,7 +1,15 @@
 package org.lordalex.thebridgelcp.Utils;
 
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 import org.lordalex.thebridgelcp.PlayerInfo;
@@ -9,10 +17,16 @@ import org.lordalex.thebridgelcp.TBTeam;
 import org.lordalex.thebridgelcp.TheBridgeLCP;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 
 public class GameUtil {
-    private static int timer = 10;
+    public static int DELAY = 10;
+    public static int SCORES_TO_WIN = 5;
+    public static int PROTECTED_RADIUS = 7;
+    public static ArrayList<Location> PLACED_BLOCKS = new ArrayList<>();
+    private static int timer = DELAY;
     public static void start(){
         TheBridgeLCP.game.setState(GameState.STARTING);
 
@@ -36,7 +50,7 @@ public class GameUtil {
                 Score s6 = objective.getScore("Карта: " + ChatColor.YELLOW + TheBridgeLCP.config.getName());
                 Score s5 = objective.getScore("Игроков: " + ChatColor.YELLOW + online + "/" + TheBridgeLCP.config.getPlayersToStart());
                 Score s4 = objective.getScore("  ");
-                Score s3 = timer<10? objective.getScore("Начало через: " + ChatColor.YELLOW + "00:0" + timer) : objective.getScore("Начало через: " + ChatColor.YELLOW + "00:" + timer);
+                Score s3 = timer<DELAY? objective.getScore("Начало через: " + ChatColor.YELLOW + "00:0" + timer) : objective.getScore("Начало через: " + ChatColor.YELLOW + "00:" + timer);
                 Score s2 = objective.getScore(" ");
                 Score s1 = objective.getScore(ColorUtil.getMessage("&a&lVimeWorld.ru"));
                 s7.setScore(7);
@@ -51,12 +65,12 @@ public class GameUtil {
                     all.setScoreboard(scoreboard);
                 }
                 if(TheBridgeLCP.game.getState() != GameState.STARTING){
-                    timer = 10;
+                    timer = DELAY;
                     interrupt();
                     cancel();
                 }
                 if(timer <= 0){
-                    timer = 10;
+                    timer = DELAY;
                     game();
                     cancel();
                 }
@@ -65,7 +79,7 @@ public class GameUtil {
         }.runTaskTimer(TheBridgeLCP.getInstance(), 0, 20);
 
         if(TheBridgeLCP.game.getState() != GameState.STARTING){
-            timer = 10;
+            timer = DELAY;
         }
     }
 
@@ -78,28 +92,15 @@ public class GameUtil {
             PlayerInfo pi = new PlayerInfo(p);
             pi.setTeam(TheBridgeLCP.teams.get(i % teamCount));
             TheBridgeLCP.teams.get(i % teamCount).getPlayers().add(pi);
+            TheBridgeLCP.players.add(pi);
             p.setPlayerListName(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getPlayerListName()));
+            p.setGameMode(GameMode.SURVIVAL);
+            p.sendMessage(ColorUtil.getMessage("&fВы играете за &" + pi.getTeam().getColor() + pi.getTeam().getNames().split(", ")[1] + " команду"));
+            p.setBedSpawnLocation(YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()), true);
             //p.sendMessage("Your team is " + TheBridgeLCP.teams.get(i % teamCount).getColor());
             i++;
-            ArrayList<String> scores = new ArrayList<>();
-            scores.add("    ");
-            for(TBTeam team : TheBridgeLCP.teams){
-                if(pi.getTeam().equals(team)){
-                    scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getActivePoints() + team.getInactivePoints() + "&a <= Вы"));
-                }
-                else{
-                    scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getActivePoints() + team.getInactivePoints()));
-                }
-            }
-            scores.add("   ");
-            scores.add(ColorUtil.getMessage("&fУбийств:&e 0"));
-            scores.add(ColorUtil.getMessage("&fОчков:&e 0"));
-            scores.add("  ");
-            scores.add(ColorUtil.getMessage("&fКарта:&e " + TheBridgeLCP.config.getName()));
-            Scoreboard scoreboard = CustomScoreboard.createScoreboard(scores);
-            p.setScoreboard(scoreboard);
-
-
+            updateGamingScoreboard(pi);
+            restartRound();
         }
 
 //        Scoreboard scoreboard = CustomScoreboard.createGamingScoreboard(scores);
@@ -130,5 +131,235 @@ public class GameUtil {
         for (Player all : Bukkit.getOnlinePlayers()) {
             all.setScoreboard(scoreboard);
         }
+    }
+
+    public static void finish(TBTeam winner){
+
+        for(Player p : Bukkit.getOnlinePlayers()){
+            Location locT = YmlParser.parseLocation(p.getWorld(), TheBridgeLCP.config.getLobby());
+            p.teleport(locT);
+            p.getInventory().clear();
+            p.getInventory().setArmorContents(null);
+            p.setHealth(20);
+            p.setFoodLevel(20);
+        }
+
+        //TBTeam winner = null;
+        int maxPoints = Integer.MIN_VALUE;
+        int samePoints = Integer.MIN_VALUE;
+        ArrayList<String> finishStrings = new ArrayList<>();
+        finishStrings.add(ColorUtil.getMessage("&b&l-----------------------"));
+        finishStrings.add(ColorUtil.getMessage("&e&l   The Bridge"));
+        finishStrings.add(ColorUtil.getMessage(" "));
+
+        if(winner == null){
+            finishStrings.add(ColorUtil.getMessage(" &f&l НИЧЬЯ"));
+        }
+        else{
+            finishStrings.add(ColorUtil.getMessage(" &" + winner.getColor() + winner.getNames().split(", ")[2] + " победили!"));
+        }
+        finishStrings.add(ColorUtil.getMessage(""));
+        finishStrings.add(ColorUtil.getMessage("&f Лучшие игроки:"));
+        int i = 1;
+        int score = SCORES_TO_WIN;
+        HashSet<PlayerInfo> set = new HashSet<>();
+        while((i < 3) && (score > 0)){
+            for(PlayerInfo pi : TheBridgeLCP.players){
+                if(!(set.contains(pi))){
+                    if(pi.getPoints() == score){
+                        finishStrings.add(ColorUtil.getMessage(" &f" + i + ". &" + pi.getTeam().getColor() + pi.getPlayer().getName() + "&c (" + score + " очков)"));
+                        set.add(pi);
+                        i++;
+                    }
+                }
+            }
+            score--;
+        }
+        finishStrings.add(ColorUtil.getMessage("&b&l-----------------------"));
+
+
+        for(Player p : Bukkit.getOnlinePlayers()){
+            for(String str : finishStrings){
+                p.sendMessage(str);
+            }
+        }
+        TheBridgeLCP.game.setState(GameState.ENDING);
+    }
+    public static void updateGamingScoreboard(PlayerInfo pi){
+        ArrayList<String> scores = new ArrayList<>();
+        scores.add("    ");
+        for(TBTeam team : TheBridgeLCP.teams){
+            String activeScores = new String(new char[team.getPoints()]).replace("\0", "⬤");
+            String inactiveScores = new String(new char[SCORES_TO_WIN-team.getPoints()]).replace("\0", "⬤");
+            if(pi.getTeam().equals(team)){
+                scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getNames().charAt(0) + " &" + team.getColor() + activeScores + "&7" + inactiveScores + "&a <= Вы"));
+            }
+            else{
+                scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getNames().charAt(0) + " &" + team.getColor() + activeScores + "&7" + inactiveScores));
+            }
+        }
+        scores.add("   ");
+        scores.add(ColorUtil.getMessage("&fУбийств:&e " + pi.getKills()));
+        scores.add(ColorUtil.getMessage("&fОчков:&e " + pi.getPoints()));
+        scores.add("  ");
+        scores.add(ColorUtil.getMessage("&fКарта:&e " + TheBridgeLCP.config.getName()));
+        Scoreboard scoreboard = CustomScoreboard.createScoreboard(scores);
+        pi.getPlayer().setScoreboard(scoreboard);
+    }
+
+    public static void restartRound(){
+        for(TBTeam team : TheBridgeLCP.teams){
+            Location loc = YmlParser.parseLocation(Bukkit.getServer().getWorld("world"), team.getSpawn());
+            List<Location> area = new ArrayList<>();
+            int y = -2;
+            area.add(loc.clone().add(0, y, 0));
+            area.add(loc.clone().add(1, y, 0));
+            area.add(loc.clone().add(0, y, 1));
+            area.add(loc.clone().add(1, y, 1));
+            area.add(loc.clone().add(1, y, -1));
+            area.add(loc.clone().add(0, y, -1));
+            area.add(loc.clone().add(-1, y, 1));
+            area.add(loc.clone().add(-1, y, 0));
+            area.add(loc.clone().add(-1, y, -1));
+
+            for(; y <= 1; y++){
+                area.add(loc.clone().add(-2, y, -2));
+                area.add(loc.clone().add(-2, y, -1));
+                area.add(loc.clone().add(-2, y, 0));
+                area.add(loc.clone().add(-2, y, 1));
+                area.add(loc.clone().add(-2, y, 2));
+                area.add(loc.clone().add(2, y, -2));
+                area.add(loc.clone().add(2, y, -1));
+                area.add(loc.clone().add(2, y, 0));
+                area.add(loc.clone().add(2, y, 1));
+                area.add(loc.clone().add(2, y, 2));
+
+                area.add(loc.clone().add(-1, y, 2));
+                area.add(loc.clone().add(-1, y, -2));
+                area.add(loc.clone().add(0, y, 2));
+                area.add(loc.clone().add(0, y, -2));
+                area.add(loc.clone().add(1, y, 2));
+                area.add(loc.clone().add(1, y, -2));
+            }
+
+            area.add(loc.clone().add(0, y, 0));
+            area.add(loc.clone().add(1, y, 0));
+            area.add(loc.clone().add(0, y, 1));
+            area.add(loc.clone().add(1, y, 1));
+            area.add(loc.clone().add(1, y, -1));
+            area.add(loc.clone().add(0, y, -1));
+            area.add(loc.clone().add(-1, y, 1));
+            area.add(loc.clone().add(-1, y, 0));
+            area.add(loc.clone().add(-1, y, -1));
+
+            for(Location l : area){
+                ItemStack glassStack = new ItemStack(Material.GLASS, 1, (byte) team.getWool());
+                Block block = l.getWorld().getBlockAt(l);
+                block.setType(Material.GLASS);
+                block.setData((byte) team.getWool());
+                //l.getWorld().getBlockAt(l)
+            }
+
+            new BukkitRunnable(){
+                @Override
+                public void run(){
+                    for(Location l : area){
+                        l.getWorld().getBlockAt(l).setType(Material.AIR);
+                    }
+                }
+            }.runTaskLater(TheBridgeLCP.getInstance(), 100);
+        }
+        for(PlayerInfo pi : TheBridgeLCP.players){
+            Player p = pi.getPlayer();
+            p.setHealth(20);
+            Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn());
+            loc.setPitch(p.getLocation().getPitch());
+            loc.setYaw(p.getLocation().getYaw());
+            p.teleport(loc);
+            giveKit(pi);
+
+        }
+    }
+    public static void giveKit(PlayerInfo pi){
+        Player p = pi.getPlayer();
+        p.getInventory().clear();
+        ItemStack swordStack = new ItemStack(Material.IRON_SWORD, 1);
+        swordStack.setDurability((short) -1);
+        ItemStack bowStack = new ItemStack(Material.BOW, 1);
+        bowStack.setDurability((short) -1);
+        ItemStack pickaxeStack = new ItemStack(Material.DIAMOND_PICKAXE, 1);
+        pickaxeStack.setDurability((short) -1);
+        ItemStack appleStack = new ItemStack(Material.GOLDEN_APPLE, 8);
+        ItemStack arrowStack = new ItemStack(Material.ARROW, 8);
+        ItemStack clayStack = new ItemStack(Material.STAINED_CLAY, 64, (byte) pi.getTeam().getWool());
+        p.getInventory().setItem(0, swordStack);
+        p.getInventory().setItem(1, bowStack);
+        p.getInventory().setItem(2, pickaxeStack);
+        p.getInventory().setItem(3, clayStack);
+        p.getInventory().setItem(4, clayStack);
+        p.getInventory().setItem(5, appleStack);
+        p.getInventory().setItem(6, arrowStack);
+
+        ItemStack bootsStack = new ItemStack(Material.LEATHER_BOOTS, 1, (byte) pi.getTeam().getWool());
+        LeatherArmorMeta bootsMeta = (LeatherArmorMeta) bootsStack.getItemMeta();
+        bootsMeta.setColor(translateChatColorToColor(pi.getTeam().getId()));
+        bootsStack.setItemMeta(bootsMeta);
+        bootsStack.setDurability((short) -1);
+        p.getInventory().setBoots(bootsStack);
+
+        ItemStack leggingsStack = new ItemStack(Material.LEATHER_LEGGINGS, 1, (byte) pi.getTeam().getWool());
+        LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggingsStack.getItemMeta();
+        leggingsMeta.setColor(translateChatColorToColor(pi.getTeam().getId()));
+        leggingsStack.setItemMeta(leggingsMeta);
+        leggingsStack.setDurability((short) -1);
+        p.getInventory().setLeggings(leggingsStack);
+
+        ItemStack chestplateStack = new ItemStack(Material.LEATHER_CHESTPLATE, 1, (byte) pi.getTeam().getWool());
+        LeatherArmorMeta chestplateMeta = (LeatherArmorMeta) chestplateStack.getItemMeta();
+        chestplateMeta.setColor(translateChatColorToColor(pi.getTeam().getId()));
+        chestplateStack.setItemMeta(chestplateMeta);
+        chestplateStack.setDurability((short) -1);
+        p.getInventory().setChestplate(chestplateStack);
+    }
+    public static Color translateChatColorToColor(String color)
+    {
+        switch (color.toUpperCase()) {
+            case "AQUA":
+                return Color.AQUA;
+            case "BLACK":
+                return Color.BLACK;
+            case "BLUE":
+                return Color.BLUE;
+            case "DARK_AQUA":
+                return Color.BLUE;
+            case "DARK_BLUE":
+                return Color.BLUE;
+            case "DARK_GRAY":
+                return Color.GRAY;
+            case "DARK_GREEN":
+                return Color.GREEN;
+            case "DARK_PURPLE":
+                return Color.PURPLE;
+            case "DARK_RED":
+                return Color.RED;
+            case "GOLD":
+                return Color.YELLOW;
+            case "GRAY":
+                return Color.GRAY;
+            case "GREEN":
+                return Color.GREEN;
+            case "LIGHT_PURPLE":
+                return Color.PURPLE;
+            case "RED":
+                return Color.RED;
+            case "WHITE":
+                return Color.WHITE;
+            case "YELLOW":
+                return Color.YELLOW;
+            default:
+                break;
+        }
+
+        return null;
     }
 }
