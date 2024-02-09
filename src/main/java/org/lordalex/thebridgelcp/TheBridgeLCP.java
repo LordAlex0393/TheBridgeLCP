@@ -28,6 +28,9 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
     @Override
     public void onEnable() {
         instance = this;
+        for(World world : Bukkit.getWorlds()){
+            world.setAutoSave(false);
+        }
         Bukkit.getPluginManager().registerEvents(new Events(), this);
         Bukkit.getPluginManager().registerEvents(this, this);
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
@@ -41,6 +44,7 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
         for(String configId : config.getTeams().keySet()){
             teams.add(new TBTeam(configId, config.getTeams().get(configId).getNames(), config.getTeams().get(configId).getColor(), config.getTeams().get(configId).getWool(), config.getTeams().get(configId).getSpawn(), config.getTeams().get(configId).getPortal()));
         }
+        GameUtil.MAX_BUILD_HEIGHT = Integer.parseInt(teams.get(0).getPortal().get(0).split(", ")[1])+16;
 
 
         BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
@@ -74,12 +78,15 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
         if (e.getItem() == null) return;
         if (!(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) return;
         if (e.getItem().getType() == Material.COMPASS) {
-            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF("Connect");
-            out.writeUTF("lobby");
-            p.sendPluginMessage(this, "BungeeCord", out.toByteArray());
-            p.sendMessage(ColorUtil.getMessage("&aВы были перемещены в лобби"));
+            teleportToLobby(p);
         }
+    }
+    public static void teleportToLobby(Player p){
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("Connect");
+        out.writeUTF("lobby");
+        p.sendPluginMessage(TheBridgeLCP.getInstance(), "BungeeCord", out.toByteArray());
+        p.sendMessage(ColorUtil.getMessage("&aВы были перемещены в лобби"));
     }
 
 

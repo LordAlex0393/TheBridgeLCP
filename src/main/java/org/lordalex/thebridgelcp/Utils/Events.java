@@ -42,40 +42,31 @@ public class Events implements Listener {
 
             if (Bukkit.getOnlinePlayers().size() >= TheBridgeLCP.config.getPlayersToStart()) {
                 GameUtil.start();
+                return;
             }
-            else if (TheBridgeLCP.game.getState() == GameState.WAITING) {
-                ItemStack compassStack = new ItemStack(Material.COMPASS, 1);
-                ItemMeta compassMeta = compassStack.getItemMeta();
-                compassMeta.setDisplayName(ColorUtil.getMessage("&f >>&e&l Вернуться в лобби&f <<"));
-                compassStack.setItemMeta(compassMeta);
-                p.getInventory().setItem(8, compassStack);
 
-                ScoreboardManager manager = Bukkit.getScoreboardManager();
-                org.bukkit.scoreboard.Scoreboard scoreboard = manager.getNewScoreboard();
+            ItemStack compassStack = new ItemStack(Material.COMPASS, 1);
+            ItemMeta compassMeta = compassStack.getItemMeta();
+            compassMeta.setDisplayName(ColorUtil.getMessage("&f >>&e&l Вернуться в лобби&f <<"));
+            compassStack.setItemMeta(compassMeta);
+            p.getInventory().setItem(8, compassStack);
 
-                Objective objective = scoreboard.registerNewObjective(ColorUtil.getMessage("&b&lThe Bridge"), "Test");
-                objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-
-                Score s5 = objective.getScore("  ");
-                Score s4 = objective.getScore("Карта: " + ChatColor.YELLOW + TheBridgeLCP.config.getName());
-                Score s3 = objective.getScore("Игроков: " + ChatColor.YELLOW + online + "/" + TheBridgeLCP.config.getPlayersToStart());
-                Score s2 = objective.getScore(" ");
-                Score s1 = objective.getScore(ColorUtil.getMessage("&a&lVimeWorld.ru"));
-                s5.setScore(5);
-                s4.setScore(4);
-                s3.setScore(3);
-                s2.setScore(2);
-                s1.setScore(1);
-                for (Player all : Bukkit.getOnlinePlayers()) {
-                    all.setScoreboard(scoreboard);
-                }
+            for (Player all : Bukkit.getOnlinePlayers()) {
+                GameUtil.updateWaitingScoreboard(all, online);
             }
+            p.teleport(loc);
+            return;
         }
-        else{
-            e.setJoinMessage(ColorUtil.getMessage("&eИгра переполнена. Вы были телепортированы в режиме наблюдателя."));
-            p.setGameMode(GameMode.SPECTATOR);
+        else if(TheBridgeLCP.game.getState() == GameState.STARTING){
+            e.setJoinMessage(ColorUtil.getMessage("&eИдет отсчет до начала игры. Телепортация отменена"));
         }
-        p.teleport(loc);
+        else if(TheBridgeLCP.game.getState() == GameState.GAME){
+            e.setJoinMessage(ColorUtil.getMessage("&eИгра уже идёт. Телепортация отменена"));
+        }
+        else if(TheBridgeLCP.game.getState() == GameState.ENDING){
+            e.setJoinMessage(ColorUtil.getMessage("&eСервер перезагружается. Телепортация отменена"));
+        }
+        TheBridgeLCP.teleportToLobby(e.getPlayer());
     }
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
@@ -98,24 +89,8 @@ public class Events implements Listener {
         }
 
         if (TheBridgeLCP.game.getState() == GameState.WAITING) {
-            ScoreboardManager manager = Bukkit.getScoreboardManager();
-            org.bukkit.scoreboard.Scoreboard scoreboard = manager.getNewScoreboard();
-
-            Objective objective = scoreboard.registerNewObjective(ColorUtil.getMessage("&b&lThe Bridge"), "Test");
-            objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-
-            Score s5 = objective.getScore(" ");
-            Score s4 = objective.getScore("Карта: " + ChatColor.YELLOW + TheBridgeLCP.config.getName());
-            Score s3 = objective.getScore("Игроков: " + ChatColor.YELLOW + (online-1) + "/" + TheBridgeLCP.config.getPlayersToStart());
-            Score s2 = objective.getScore(" ");
-            Score s1 = objective.getScore(ColorUtil.getMessage("&a&lVimeWorld.ru"));
-            s5.setScore(5);
-            s4.setScore(4);
-            s3.setScore(3);
-            s2.setScore(2);
-            s1.setScore(1);
             for (Player all : Bukkit.getOnlinePlayers()) {
-                all.setScoreboard(scoreboard);
+                GameUtil.updateWaitingScoreboard(all, online-1);
             }
         }
     }
@@ -206,17 +181,12 @@ public class Events implements Listener {
         int radius = GameUtil.PROTECTED_RADIUS;
         for(TBTeam team : TheBridgeLCP.teams){
             Location portal = YmlParser.parseLocation(p.getWorld(), team.getPortal().get(4));
-            if((Math.abs(portal.getX() - blockLoc.getX()) <= radius) && (Math.abs(portal.getZ() - blockLoc.getZ()) <= radius)){
-                p.sendMessage("X: " + (int) portal.getX() + " / " + (int) blockLoc.getX() + " = " + Math.abs(Math.abs(portal.getX()) - Math.abs(blockLoc.getX())));
-                p.sendMessage( "Z: " + (int) portal.getZ() + " / " + (int) blockLoc.getZ() + " = " + Math.abs(Math.abs(portal.getZ()) - Math.abs(blockLoc.getZ())));
+            if(((Math.abs(portal.getX() - blockLoc.getX()) <= radius) && (Math.abs(portal.getZ() - blockLoc.getZ()) <= radius)) || blockLoc.getY() >= GameUtil.MAX_BUILD_HEIGHT){
+                //p.sendMessage("X: " + (int) portal.getX() + " / " + (int) blockLoc.getX() + " = " + Math.abs(Math.abs(portal.getX()) - Math.abs(blockLoc.getX())));
+                //p.sendMessage( "Z: " + (int) portal.getZ() + " / " + (int) blockLoc.getZ() + " = " + Math.abs(Math.abs(portal.getZ()) - Math.abs(blockLoc.getZ())));
                 e.setCancelled(true);
                 return;
             }
-//            else if(Math.abs(Math.abs(portal.getZ()) - Math.abs(blockLoc.getZ())) <= radius){
-//                p.sendMessage( "Z: " + (int) portal.getZ() + " / " + (int) blockLoc.getZ() + " = " + Math.abs(Math.abs(portal.getZ()) - Math.abs(blockLoc.getZ())));
-//                e.setCancelled(true);
-//                return;
-//            }
         }
         GameUtil.PLACED_BLOCKS.add(blockLoc);
     }
@@ -233,10 +203,13 @@ public class Events implements Listener {
                 Player killer = e.getEntity().getKiller();
                 PlayerInfo killerInfo = TheBridgeLCP.getPlayerInfo(killer);
                 killerInfo.setKills(killerInfo.getKills()+1);
-                for(Player all : Bukkit.getOnlinePlayers()){
-                    all.sendMessage(ColorUtil.getMessage("&" + victimInfo.getTeam().getColor() + victim.getName() + "&f был убит игроком &" + killerInfo.getTeam().getColor() + killer.getName()));
+                if(!(victim.equals(killer))){
+                    for(Player all : Bukkit.getOnlinePlayers()){
+                        all.sendMessage(ColorUtil.getMessage("&" + victimInfo.getTeam().getColor() + victim.getName() + "&f был убит игроком &" + killerInfo.getTeam().getColor() + killer.getName()));
+                    }
+                    GameUtil.updateGamingScoreboard(killerInfo);
                 }
-                GameUtil.updateGamingScoreboard(killerInfo);
+                victimInfo.setDeaths(victimInfo.getDeaths()+1);
             }
                 victim.getInventory().clear();
                 victim.spigot().respawn();
