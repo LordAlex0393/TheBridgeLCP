@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -15,6 +16,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -25,6 +27,18 @@ import org.lordalex.thebridgelcp.TBTeam;
 import org.lordalex.thebridgelcp.TheBridgeLCP;
 public class Events implements Listener {
 
+
+    @EventHandler
+    public void onJoin(PlayerLoginEvent e) {
+        if(TheBridgeLCP.game.getState() == GameState.STARTING){
+            e.setKickMessage(ColorUtil.getMessage("&c" + e.getHostname()));
+            e.disallow(PlayerLoginEvent.Result.KICK_FULL, ColorUtil.getMessage("Идет отсчёт до начала игры"));
+        }
+        else if(TheBridgeLCP.game.getState() == GameState.ENDING){
+            e.setKickMessage(ColorUtil.getMessage("&c" + e.getHostname()));
+            e.disallow(PlayerLoginEvent.Result.KICK_FULL, ColorUtil.getMessage("Идет завершение игры"));
+        }
+    }
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
@@ -58,19 +72,25 @@ public class Events implements Listener {
             return;
         }
         else if(TheBridgeLCP.game.getState() == GameState.STARTING){
-            e.setJoinMessage(ColorUtil.getMessage("&eИдет отсчет до начала игры. Телепортация отменена"));
+            //e.setJoinMessage(ColorUtil.getMessage("&eИдет отсчет до начала игры. Телепортация отменена"));
         }
         else if(TheBridgeLCP.game.getState() == GameState.GAME){
-            e.setJoinMessage(ColorUtil.getMessage("&eИгра уже идёт. Телепортация отменена"));
+            p.setPlayerListName(null);
+            p.setGameMode(GameMode.SPECTATOR);
+            p.setPlayerListName(null);
         }
         else if(TheBridgeLCP.game.getState() == GameState.ENDING){
-            e.setJoinMessage(ColorUtil.getMessage("&eСервер перезагружается. Телепортация отменена"));
+            //e.setJoinMessage(ColorUtil.getMessage("&eСервер перезагружается. Телепортация отменена"));
         }
-        TheBridgeLCP.teleportToLobby(e.getPlayer());
+        //TheBridgeLCP.teleportToLobby(e.getPlayer());
     }
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
+        if(p.getGameMode() == GameMode.SPECTATOR){
+            e.setQuitMessage(null);
+            return;
+        }
         int online = Bukkit.getOnlinePlayers().size();
         e.setQuitMessage(ColorUtil.getMessage("[" + (online-1) + "/" + TheBridgeLCP.config.getPlayersToStart() + "] &e<= &fИгрок " + p.getName() + " вышел"));
 
@@ -79,9 +99,9 @@ public class Events implements Listener {
         }
         if(TheBridgeLCP.game.getState() == GameState.GAME){
             e.setQuitMessage(ColorUtil.getMessage("[" + (online-1) + "/" + TheBridgeLCP.config.getPlayersToStart() + "] &e<= &fИгрок &" + TheBridgeLCP.getPlayerInfo(p).getTeam().getColor() + p.getName() + "&f вышел"));
-            if(Bukkit.getOnlinePlayers().size()-1 < 2){
-                for(Player player : Bukkit.getOnlinePlayers()){
-                    if(!(p.equals(player))){
+            if((Bukkit.getOnlinePlayers().size()-1-(Bukkit.getOnlinePlayers().size()-TheBridgeLCP.players.size())) < 2){
+                for(PlayerInfo pi : TheBridgeLCP.players){
+                    if(!(p.equals(pi.getPlayer()))){
                         GameUtil.finish(TheBridgeLCP.getPlayerInfo(p).getTeam());
                     }
                 }
@@ -211,7 +231,7 @@ public class Events implements Listener {
                 }
                 victimInfo.setDeaths(victimInfo.getDeaths()+1);
             }
-                victim.getInventory().clear();
+                //victim.getInventory().clear();
                 victim.spigot().respawn();
         }
     }
@@ -249,7 +269,7 @@ public class Events implements Listener {
         }
         else{
             for(Player all : Bukkit.getOnlinePlayers()){
-                p.sendMessage(ColorUtil.getMessage("&7" + p.getName() + ": &f" + msg));
+                all.sendMessage(ColorUtil.getMessage("&7" + p.getName() + ": &f" + msg));
             }
         }
     }

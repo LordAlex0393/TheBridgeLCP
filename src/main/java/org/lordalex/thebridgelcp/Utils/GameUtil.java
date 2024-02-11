@@ -3,6 +3,8 @@ package org.lordalex.thebridgelcp.Utils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryAction;
@@ -26,10 +28,10 @@ import java.util.List;
 
 
 public class GameUtil {
-    public static int DELAY = 5;
-    public static int SCORES_TO_WIN = 3;
+    public static int DELAY = 10;
+    public static int SCORES_TO_WIN = 5;
     public static int PROTECTED_RADIUS = 7;
-    public static int MAX_BUILD_HEIGHT = 86;
+    public static int MAX_BUILD_HEIGHT = 85;
     public static ArrayList<Location> PLACED_BLOCKS = new ArrayList<>();
     private static int timer = DELAY;
     public static void start(){
@@ -133,8 +135,14 @@ public class GameUtil {
     }
 
     public static void finish(TBTeam winner){
+        for(Entity current : Bukkit.getServer().getWorld("world").getEntities()) {//loop through the list
+            if (current instanceof Item) {//make sure we aren't deleting mobs/players
+                current.remove();//remove it
+            }
+        }
 
-        for(Player p : Bukkit.getOnlinePlayers()){
+        for(PlayerInfo pi : TheBridgeLCP.players){
+            Player p = pi.getPlayer();
             Location locT = YmlParser.parseLocation(p.getWorld(), TheBridgeLCP.config.getLobby());
             p.teleport(locT);
             p.getInventory().clear();
@@ -196,18 +204,20 @@ public class GameUtil {
                 for(Player p : Bukkit.getOnlinePlayers()){
                     TheBridgeLCP.teleportToLobby(p);
                 }
-                new BukkitRunnable(){
-                    @Override
-                    public void run(){
+//                new BukkitRunnable(){
+//                    @Override
+//                    public void run(){
 //                        Bukkit.getServer().shutdown();
 //                        try {
+////                            Process process = Runtime.getRuntime().exec(
+////                                    "cmd /c startTB.bat", null, new File("C:\\Users\\Lord_Alex\\Desktop\\LordWorld\\TheBridge\\"));
 //                            Process process = Runtime.getRuntime().exec(
-//                                    "cmd /c startTB.bat", null, new File("C:\\Users\\Lord_Alex\\Desktop\\LordWorld\\TheBridge\\"));
+//                                    "cmd /c startTB.bat", null, new File("C:\\Users\\orlov\\MineServer_09_02_2024\\TheBridge\\"));
 //                        } catch (IOException e) {
 //                            throw new RuntimeException(e);
 //                        }
-                    }
-                }.runTaskLater(TheBridgeLCP.getInstance(), 0);
+//                    }
+//                }.runTaskLater(TheBridgeLCP.getInstance(), 20);
             }
         }.runTaskLater(TheBridgeLCP.getInstance(), 300);
 
@@ -317,7 +327,10 @@ public class GameUtil {
     }
     public static void giveKit(PlayerInfo pi){
         Player p = pi.getPlayer();
-        p.getInventory().clear();
+        for(PotionEffect pe : p.getActivePotionEffects()){
+            p.removePotionEffect(pe.getType());
+        }
+        //p.getInventory().clear();
         ItemStack swordStack = new ItemStack(Material.IRON_SWORD, 1);
         swordStack.setDurability((short) -1);
         ItemStack bowStack = new ItemStack(Material.BOW, 1);
@@ -327,17 +340,55 @@ public class GameUtil {
         pickaxeMeta.addEnchant(Enchantment.DIG_SPEED, 2, false);
         pickaxeStack.setItemMeta(pickaxeMeta);
         pickaxeStack.setDurability((short) -1);
-        ItemStack appleStack = new ItemStack(Material.GOLDEN_APPLE, 8);
-        ItemStack arrowStack = new ItemStack(Material.ARROW, 8);
+        ItemStack appleStack = new ItemStack(Material.GOLDEN_APPLE, TheBridgeLCP.players.size()*2);
+        ItemStack arrowStack = new ItemStack(Material.ARROW, TheBridgeLCP.players.size()*2);
         ItemStack clayStack = new ItemStack(Material.STAINED_CLAY, 64, (byte) pi.getTeam().getWool());
-
-        p.getInventory().setItem(0, swordStack);
-        p.getInventory().setItem(1, bowStack);
-        p.getInventory().setItem(2, pickaxeStack);
-        p.getInventory().setItem(3, clayStack);
-        p.getInventory().setItem(4, clayStack);
-        p.getInventory().setItem(5, appleStack);
-        p.getInventory().setItem(6, arrowStack);
+        if(!(p.getInventory().contains(Material.IRON_SWORD))){
+            p.getInventory().setItem(0, swordStack);
+            p.getInventory().setItem(1, bowStack);
+            p.getInventory().setItem(2, pickaxeStack);
+            p.getInventory().setItem(3, clayStack);
+            p.getInventory().setItem(4, clayStack);
+            p.getInventory().setItem(5, arrowStack);
+            p.getInventory().setItem(6, appleStack);
+        }
+        else{
+            int clayCount = 0;
+            int arrowCount = 0;
+            int appleCount = 0;
+            for(ItemStack is : p.getInventory().getContents()){
+                if(is == null) continue;
+                if(is.getType()==Material.STAINED_CLAY){
+                    if(is.getData().getData() == clayStack.getData().getData()){
+                        is.setAmount(64);
+                        clayCount++;
+                    }
+                    else{
+                        p.getInventory().removeItem(is);
+                    }
+                }
+                else if(is.getType()==Material.ARROW){
+                    is.setAmount(TheBridgeLCP.players.size()*2);
+                    arrowCount++;
+                }
+                else if(is.getType()==Material.GOLDEN_APPLE){
+                    is.setAmount(TheBridgeLCP.players.size()*2);
+                    appleCount++;
+                }
+            }
+            while(clayCount < 2){
+                p.getInventory().addItem(clayStack);
+                clayCount++;
+            }
+            while(arrowCount < 1){
+                p.getInventory().addItem(arrowStack);
+                arrowCount++;
+            }
+            while(appleCount < 1){
+                p.getInventory().addItem(appleStack);
+                appleCount++;
+            }
+        }
 
         ItemStack bootsStack = new ItemStack(Material.LEATHER_BOOTS, 1, (byte) pi.getTeam().getWool());
         LeatherArmorMeta bootsMeta = (LeatherArmorMeta) bootsStack.getItemMeta();

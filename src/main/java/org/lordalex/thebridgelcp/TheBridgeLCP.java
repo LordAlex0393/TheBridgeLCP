@@ -9,11 +9,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.lordalex.thebridgelcp.Commands.GameCommand;
 import org.lordalex.thebridgelcp.Utils.*;
 
 import java.io.File;
@@ -28,6 +30,9 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
     @Override
     public void onEnable() {
         instance = this;
+        //getCommand("tb").setExecutor(new TBcommand());
+        getCommand("game").setExecutor(new GameCommand());
+        getCommand("game").setTabCompleter(new GameCommand());
         for(World world : Bukkit.getWorlds()){
             world.setAutoSave(false);
         }

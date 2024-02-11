@@ -4,4 +4,6 @@ main: org.lordalex.thebridgelcp.TheBridgeLCP
 softdepend: [ ProtocolLib ]
 commands:
   game:
-    description: "Change a player tag above his head"
+    description: "start interrupt finish flag"
+  tb:
+    description: "stats spectoteam teamname"

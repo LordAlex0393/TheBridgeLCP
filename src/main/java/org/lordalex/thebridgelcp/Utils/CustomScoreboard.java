@@ -19,7 +19,7 @@ public class CustomScoreboard {
             i--;
         }
         objective.getScore(" ").setScore(2);
-        objective.getScore(ColorUtil.getMessage("&a&lVimeWorld.ru")).setScore(1);
+        objective.getScore(ColorUtil.getMessage("&a&lneVimeWorld.ru")).setScore(1);
 
         return scoreboard;
     }
