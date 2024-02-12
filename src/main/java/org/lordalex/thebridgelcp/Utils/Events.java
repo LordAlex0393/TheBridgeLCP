@@ -242,9 +242,12 @@ public class Events implements Listener {
             Player p = e.getPlayer();
             PlayerInfo pi = TheBridgeLCP.getPlayerInfo(p);
             //e.setRespawnLocation(YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()));
-            p.teleport(YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()));
+            Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn());
+            loc.setPitch(0);
+            loc.setYaw(TheBridgeLCP.config.getTeams().get(pi.getTeam().getId()).getYaw());
+            p.teleport(loc);
             GameUtil.giveKit(pi);
-            e.getPlayer().setBedSpawnLocation(YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()), true);
+            e.getPlayer().setBedSpawnLocation(loc, true);
         }
     }
 
@@ -276,6 +279,7 @@ public class Events implements Listener {
 
     @EventHandler
     public void onPlayerPortalEvent(PlayerPortalEvent e){
+        e.setCancelled(true);
         Player p = e.getPlayer();
         PlayerInfo pi = TheBridgeLCP.getPlayerInfo(p);
 
@@ -311,6 +315,5 @@ public class Events implements Listener {
                 }
             }
         }
-        e.setCancelled(true);
     }
 }

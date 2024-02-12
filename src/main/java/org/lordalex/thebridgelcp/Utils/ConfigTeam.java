@@ -8,6 +8,15 @@ public class ConfigTeam {
     private int wool;
     private String spawn;
     private List<String> portal;
+    private int yaw;
+
+    public int getYaw() {
+        return yaw;
+    }
+
+    public void setYaw(int yaw) {
+        this.yaw = yaw;
+    }
 
     public String getNames() {
         return names;

@@ -101,6 +101,8 @@ public class GameUtil {
             TheBridgeLCP.teams.get(i % teamCount).getPlayers().add(pi);
             TheBridgeLCP.players.add(pi);
             p.setPlayerListName(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getPlayerListName()));
+            p.setCustomName("§" + pi.getTeam().getColor() + p.getName());
+            p.setCustomNameVisible(true);
             p.setGameMode(GameMode.SURVIVAL);
             p.sendMessage(ColorUtil.getMessage("&fВы играете за &" + pi.getTeam().getColor() + pi.getTeam().getNames().split(", ")[1] + " команду"));
             p.setBedSpawnLocation(YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()), true);
@@ -318,8 +320,8 @@ public class GameUtil {
             Player p = pi.getPlayer();
             p.setHealth(20);
             Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn());
-            loc.setPitch(p.getLocation().getPitch());
-            loc.setYaw(p.getLocation().getYaw());
+            loc.setPitch(0);
+            loc.setYaw(TheBridgeLCP.config.getTeams().get(pi.getTeam().getId()).getYaw());
             p.teleport(loc);
             giveKit(pi);
 
