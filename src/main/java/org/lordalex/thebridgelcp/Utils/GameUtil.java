@@ -105,7 +105,11 @@ public class GameUtil {
             p.setCustomNameVisible(true);
             p.setGameMode(GameMode.SURVIVAL);
             p.sendMessage(ColorUtil.getMessage("&fВы играете за &" + pi.getTeam().getColor() + pi.getTeam().getNames().split(", ")[1] + " команду"));
-            p.setBedSpawnLocation(YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()), true);
+
+            Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn());
+            loc.setPitch(0);
+            loc.setYaw(TheBridgeLCP.config.getTeams().get(pi.getTeam().getId()).getYaw());
+            p.setBedSpawnLocation(loc, true);
             i++;
             updateGamingScoreboard(pi);
             restartRound();

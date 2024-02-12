@@ -231,8 +231,11 @@ public class Events implements Listener {
                 }
                 victimInfo.setDeaths(victimInfo.getDeaths()+1);
             }
-                //victim.getInventory().clear();
-                victim.spigot().respawn();
+//            Location loc = YmlParser.parseLocation(victim.getWorld(), victimInfo.getTeam().getSpawn());
+//            loc.setPitch(0);
+//            loc.setYaw(TheBridgeLCP.config.getTeams().get(victimInfo.getTeam().getId()).getYaw());
+//            victim.setBedSpawnLocation(loc, true);
+            victim.spigot().respawn();
         }
     }
 
@@ -241,13 +244,13 @@ public class Events implements Listener {
         if(TheBridgeLCP.game.getState() == GameState.GAME){
             Player p = e.getPlayer();
             PlayerInfo pi = TheBridgeLCP.getPlayerInfo(p);
-            //e.setRespawnLocation(YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()));
             Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn());
             loc.setPitch(0);
             loc.setYaw(TheBridgeLCP.config.getTeams().get(pi.getTeam().getId()).getYaw());
             p.teleport(loc);
             GameUtil.giveKit(pi);
             e.getPlayer().setBedSpawnLocation(loc, true);
+            e.setRespawnLocation(loc);
         }
     }
 
