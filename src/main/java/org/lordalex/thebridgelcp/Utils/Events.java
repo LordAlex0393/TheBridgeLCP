@@ -200,15 +200,12 @@ public class Events implements Listener {
         Location blockLoc = e.getBlock().getLocation();
         int radius = GameUtil.PROTECTED_RADIUS;
         for(TBTeam team : TheBridgeLCP.teams){
-            Location portal = YmlParser.parseLocation(p.getWorld(), team.getPortal().get(4));
+            Location portal = YmlParser.parseLocation(p.getWorld(), team.getPortal());
             if(((Math.abs(portal.getX() - blockLoc.getX()) <= radius) && (Math.abs(portal.getZ() - blockLoc.getZ()) <= radius)) || blockLoc.getY() >= GameUtil.MAX_BUILD_HEIGHT){
-                //p.sendMessage("X: " + (int) portal.getX() + " / " + (int) blockLoc.getX() + " = " + Math.abs(Math.abs(portal.getX()) - Math.abs(blockLoc.getX())));
-                //p.sendMessage( "Z: " + (int) portal.getZ() + " / " + (int) blockLoc.getZ() + " = " + Math.abs(Math.abs(portal.getZ()) - Math.abs(blockLoc.getZ())));
                 e.setCancelled(true);
                 return;
             }
         }
-        GameUtil.PLACED_BLOCKS.add(blockLoc);
     }
 
     @EventHandler
@@ -291,28 +288,27 @@ public class Events implements Listener {
         if(TheBridgeLCP.game.getState() == GameState.GAME){
             for(TBTeam team : TheBridgeLCP.teams){
                 if(!(team.equals(pi.getTeam()))){
-                    for(String portalStr : team.getPortal()){
-                        Location loc = YmlParser.parseLocation(p.getWorld(), portalStr);
-                        int X2 = (int) loc.getX();
-                        int Z2 = (int) loc.getZ();
+                    Location loc = YmlParser.parseLocation(p.getWorld(), team.getPortal());
+                    int X2 = (int) loc.getX();
+                    int Z2 = (int) loc.getZ();
 
-                        if((X1==X2) && (Z1==Z2)){
-                            pi.getTeam().setPoints(pi.getTeam().getPoints()+1);
-                            pi.setPoints(pi.getPoints()+1);
-                            for(PlayerInfo pi2 : TheBridgeLCP.players){
-                                GameUtil.updateGamingScoreboard(pi2);
-                            }
-                            if(pi.getTeam().getPoints() == GameUtil.SCORES_TO_WIN){
-                                GameUtil.finish(pi.getTeam());
-                            }
-                            else{
-                                GameUtil.restartRound();
-                            }
-                            for(Player all : Bukkit.getOnlinePlayers()){
-                                all.sendMessage(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getName() + "&f добрался до портала"));
-                            }
+                    if((Math.abs(X1-X2)<3) && (Math.abs(Z1-Z2)<3)){
+                        pi.getTeam().setPoints(pi.getTeam().getPoints()+1);
+                        pi.setPoints(pi.getPoints()+1);
+                        for(PlayerInfo pi2 : TheBridgeLCP.players){
+                            GameUtil.updateGamingScoreboard(pi2);
+                        }
+                        if(pi.getTeam().getPoints() == GameUtil.SCORES_TO_WIN){
+                            GameUtil.finish(pi.getTeam());
+                        }
+                        else{
+                            GameUtil.restartRound();
+                        }
+                        for(Player all : Bukkit.getOnlinePlayers()){
+                            all.sendMessage(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getName() + "&f добрался до портала"));
                         }
                     }
+
                 }
             }
         }

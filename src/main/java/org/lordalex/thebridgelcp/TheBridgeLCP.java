@@ -49,7 +49,7 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
         for(String configId : config.getTeams().keySet()){
             teams.add(new TBTeam(configId, config.getTeams().get(configId).getNames(), config.getTeams().get(configId).getColor(), config.getTeams().get(configId).getWool(), config.getTeams().get(configId).getSpawn(), config.getTeams().get(configId).getPortal()));
         }
-        GameUtil.MAX_BUILD_HEIGHT = Integer.parseInt(teams.get(0).getPortal().get(0).split(", ")[1])+16;
+        GameUtil.MAX_BUILD_HEIGHT = Integer.parseInt(teams.get(0).getPortal().split(", ")[1])+15;
 
 
         BukkitScheduler scheduler = Bukkit.getServer().getScheduler();

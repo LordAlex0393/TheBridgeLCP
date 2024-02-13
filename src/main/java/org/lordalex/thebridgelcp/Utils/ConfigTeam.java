@@ -7,7 +7,7 @@ public class ConfigTeam {
     private String color;
     private int wool;
     private String spawn;
-    private List<String> portal;
+    private String portal;
     private int yaw;
 
     public int getYaw() {
@@ -50,11 +50,11 @@ public class ConfigTeam {
         this.spawn = spawn;
     }
 
-    public List<String> getPortal() {
+    public String getPortal() {
         return portal;
     }
 
-    public void setPortal(List<String> bed) {
-        this.portal = bed;
+    public void setPortal(String portal) {
+        this.portal = portal;
     }
 }

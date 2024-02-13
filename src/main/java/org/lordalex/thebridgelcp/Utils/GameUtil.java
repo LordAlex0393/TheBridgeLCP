@@ -31,8 +31,7 @@ public class GameUtil {
     public static int DELAY = 10;
     public static int SCORES_TO_WIN = 5;
     public static int PROTECTED_RADIUS = 7;
-    public static int MAX_BUILD_HEIGHT = 85;
-    public static ArrayList<Location> PLACED_BLOCKS = new ArrayList<>();
+    public static int MAX_BUILD_HEIGHT;
     private static int timer = DELAY;
     public static void start(){
         TheBridgeLCP.game.setState(GameState.STARTING);
