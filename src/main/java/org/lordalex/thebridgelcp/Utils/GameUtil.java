@@ -176,7 +176,7 @@ public class GameUtil {
         int i = 1;
         int score = SCORES_TO_WIN;
         HashSet<PlayerInfo> set = new HashSet<>();
-        while((i < 3) && (score > 0)){
+        while((i <= 3) && (score > 0)){
             for(PlayerInfo pi : TheBridgeLCP.players){
                 if(!(set.contains(pi))){
                     if(pi.getPoints() == score){

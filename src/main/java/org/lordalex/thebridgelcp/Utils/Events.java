@@ -287,7 +287,6 @@ public class Events implements Listener {
         PlayerInfo pi = TheBridgeLCP.getPlayerInfo(p);
 
         int X1 = (int) p.getLocation().getX();
-        int Y1 = (int) p.getLocation().getY();
         int Z1 = (int) p.getLocation().getZ();
         if(TheBridgeLCP.game.getState() == GameState.GAME){
             for(TBTeam team : TheBridgeLCP.teams){
@@ -295,10 +294,9 @@ public class Events implements Listener {
                     for(String portalStr : team.getPortal()){
                         Location loc = YmlParser.parseLocation(p.getWorld(), portalStr);
                         int X2 = (int) loc.getX();
-                        int Y2 = (int) loc.getY();
                         int Z2 = (int) loc.getZ();
 
-                        if((X1==X2) && (Y1==Y2) && (Z1==Z2)){
+                        if((X1==X2) && (Z1==Z2)){
                             pi.getTeam().setPoints(pi.getTeam().getPoints()+1);
                             pi.setPoints(pi.getPoints()+1);
                             for(PlayerInfo pi2 : TheBridgeLCP.players){
