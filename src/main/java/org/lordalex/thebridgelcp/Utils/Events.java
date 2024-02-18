@@ -293,6 +293,9 @@ public class Events implements Listener {
                     int Z2 = (int) loc.getZ();
 
                     if((Math.abs(X1-X2)<3) && (Math.abs(Z1-Z2)<3)){
+                        for(Player all : Bukkit.getOnlinePlayers()){
+                            all.sendMessage(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getName() + "&f добрался до портала"));
+                        }
                         pi.getTeam().setPoints(pi.getTeam().getPoints()+1);
                         pi.setPoints(pi.getPoints()+1);
                         for(PlayerInfo pi2 : TheBridgeLCP.players){
@@ -303,9 +306,6 @@ public class Events implements Listener {
                         }
                         else{
                             GameUtil.restartRound();
-                        }
-                        for(Player all : Bukkit.getOnlinePlayers()){
-                            all.sendMessage(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getName() + "&f добрался до портала"));
                         }
                     }
 

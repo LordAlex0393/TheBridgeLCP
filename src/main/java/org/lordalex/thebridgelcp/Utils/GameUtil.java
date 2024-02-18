@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.*;
 import org.lordalex.thebridgelcp.PlayerInfo;
 import org.lordalex.thebridgelcp.TBTeam;
@@ -112,6 +113,20 @@ public class GameUtil {
             i++;
             updateGamingScoreboard(pi);
             restartRound();
+
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            scheduler.scheduleSyncRepeatingTask(TheBridgeLCP.getInstance(), new Runnable() {
+                @Override
+                public void run() {
+                    if(TheBridgeLCP.game.getState() == GameState.GAME){
+                        for(PlayerInfo allInfo : TheBridgeLCP.players){
+                            if(allInfo.getPlayer().getLocation().getY() <= 10){
+                                allInfo.getPlayer().damage(10000);
+                            }
+                        }
+                    }
+                }
+            }, 0L, 10L);
         }
     }
     public static void interrupt(){
@@ -191,7 +206,10 @@ public class GameUtil {
             score--;
         }
         finishStrings.add(ColorUtil.getMessage(line));
+
+
         for(Player p : Bukkit.getOnlinePlayers()){
+            Bukkit.getWorld("world").playSound(YmlParser.parseLocation(Bukkit.getWorld("world"), TheBridgeLCP.config.getLobby()), Sound.LEVEL_UP, 3.0F, 1F);
             for(String str : finishStrings){
                 p.sendMessage(str);
             }
@@ -201,6 +219,22 @@ public class GameUtil {
             compassStack.setItemMeta(compassMeta);
             p.getInventory().setItem(8, compassStack);
         }
+        new BukkitRunnable(){
+            @Override
+            public void run(){
+                for(PlayerInfo pi : TheBridgeLCP.players){
+                    Player p = pi.getPlayer();
+                    p.sendMessage(ColorUtil.getMessage("&a&l-------------------------"));
+                    p.sendMessage(ColorUtil.getMessage("&e&l   Ваша статистика:"));
+                    p.sendMessage(ColorUtil.getMessage(" "));
+                    p.sendMessage(ColorUtil.getMessage("&e Очков&f: " + pi.getPoints()));
+                    p.sendMessage(ColorUtil.getMessage("&e Убийств&f: " + pi.getKills()));
+                    p.sendMessage(ColorUtil.getMessage("&e Смертей&f: " + pi.getDeaths()));
+                    p.sendMessage(ColorUtil.getMessage("&a&l-------------------------"));
+                }
+                Bukkit.getWorld("world").playSound(YmlParser.parseLocation(Bukkit.getWorld("world"), TheBridgeLCP.config.getLobby()), Sound.ORB_PICKUP, 3.0F, 1F);
+            }
+        }.runTaskLater(TheBridgeLCP.getInstance(), 50);
         TheBridgeLCP.game.setState(GameState.ENDING);
 
         new BukkitRunnable(){
@@ -258,10 +292,11 @@ public class GameUtil {
     }
 
     public static void restartRound(){
+        int boxHeight = 4;
         for(TBTeam team : TheBridgeLCP.teams){
             Location loc = YmlParser.parseLocation(Bukkit.getServer().getWorld("world"), team.getSpawn());
             List<Location> area = new ArrayList<>();
-            int y = -2;
+            int y = boxHeight-1;
             area.add(loc.clone().add(0, y, 0));
             area.add(loc.clone().add(1, y, 0));
             area.add(loc.clone().add(0, y, 1));
@@ -272,7 +307,7 @@ public class GameUtil {
             area.add(loc.clone().add(-1, y, 0));
             area.add(loc.clone().add(-1, y, -1));
 
-            for(; y <= 1; y++){
+            for(int i = 0; i < 5; i++){
                 area.add(loc.clone().add(-2, y, -2));
                 area.add(loc.clone().add(-2, y, -1));
                 area.add(loc.clone().add(-2, y, 0));
@@ -290,8 +325,9 @@ public class GameUtil {
                 area.add(loc.clone().add(0, y, -2));
                 area.add(loc.clone().add(1, y, 2));
                 area.add(loc.clone().add(1, y, -2));
+                y++;
             }
-
+            y--;
             area.add(loc.clone().add(0, y, 0));
             area.add(loc.clone().add(1, y, 0));
             area.add(loc.clone().add(0, y, 1));
@@ -322,7 +358,7 @@ public class GameUtil {
         for(PlayerInfo pi : TheBridgeLCP.players){
             Player p = pi.getPlayer();
             p.setHealth(20);
-            Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn());
+            Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()).add(0, boxHeight+1, 0);
             loc.setPitch(0);
             loc.setYaw(TheBridgeLCP.config.getTeams().get(pi.getTeam().getId()).getYaw());
             p.teleport(loc);
