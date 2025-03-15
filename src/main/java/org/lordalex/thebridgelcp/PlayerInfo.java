@@ -1,6 +1,7 @@
 package org.lordalex.thebridgelcp;
 
 import org.bukkit.entity.Player;
+
 public class PlayerInfo {
     //public static final Map<String, PlayerInfo> PLAYERS = new ConcurrentHashMap<>();
     public final Player player;

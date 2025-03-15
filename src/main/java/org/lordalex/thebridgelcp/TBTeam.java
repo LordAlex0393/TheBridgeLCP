@@ -1,10 +1,6 @@
 package org.lordalex.thebridgelcp;
 
-import org.bukkit.ChatColor;
-import org.lordalex.thebridgelcp.Utils.ColorUtil;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class TBTeam {
     private String id;
@@ -41,6 +37,7 @@ public class TBTeam {
     public void setId(String id) {
         this.id = id;
     }
+
     public String getNames() {
         return names;
     }

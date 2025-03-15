@@ -8,63 +8,73 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.lordalex.thebridgelcp.Commands.GameCommand;
 import org.lordalex.thebridgelcp.Utils.*;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
 
 public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListener, Listener {
+    public static HashSet<PlayerInfo> players = new HashSet<>();
+    public static ArrayList<TBTeam> teams = new ArrayList<>();
     private static Plugin instance;
     public static Config config;
     public static Game game;
-    public static ArrayList<TBTeam> teams = new ArrayList<>();
-    public static HashSet<PlayerInfo> players = new HashSet<>();
+
     @Override
     public void onEnable() {
         instance = this;
-        //getCommand("tb").setExecutor(new TBcommand());
-        getCommand("game").setExecutor(new GameCommand());
-        getCommand("game").setTabCompleter(new GameCommand());
-        for(World world : Bukkit.getWorlds()){
-            world.setAutoSave(false);
-        }
-        Bukkit.getPluginManager().registerEvents(new Events(), this);
-        Bukkit.getPluginManager().registerEvents(this, this);
-        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        registerAllEvents();
+        registerAllCommands();
         game = new Game(this, GameState.WAITING);
-
-        //File file = new File("plugins\\TheBridgeLCP\\config.yml");
         File file = new File("config.yml");
         config = YmlParser.parseMapConfig(file);
+        initGame();
+    }
 
-
-        for(String configId : config.getTeams().keySet()){
-            teams.add(new TBTeam(configId, config.getTeams().get(configId).getNames(), config.getTeams().get(configId).getColor(), config.getTeams().get(configId).getWool(), config.getTeams().get(configId).getSpawn(), config.getTeams().get(configId).getPortal()));
+    private void initGame() {
+        for (World world : Bukkit.getWorlds()) {
+            world.setGameRuleValue("doDaylightCycle", "false");
+            world.setGameRuleValue("doWeatherCycle", "false");
+            world.setAutoSave(false);
         }
-        GameUtil.MAX_BUILD_HEIGHT = Integer.parseInt(teams.get(0).getPortal().split(", ")[1])+15;
+        for (Map.Entry<String, ConfigTeam> entry : config.getTeams().entrySet()) {
+            ConfigTeam configTeam = entry.getValue();
+            String configId = entry.getKey();
+            teams.add(new TBTeam(
+                    configId,
+                    configTeam.getNames(),
+                    configTeam.getColor(),
+                    configTeam.getWool(),
+                    configTeam.getSpawn(),
+                    configTeam.getPortal()
+            ));
+        }
+        GameUtil.MAX_BUILD_HEIGHT = Integer.parseInt(teams.get(0).getPortal().split(", ")[1]) + 15;
+    }
 
+    private void registerAllEvents() {
+        Bukkit.getPluginManager().registerEvents(new Events(), this);
+        Bukkit.getPluginManager().registerEvents(this, this);
+    }
 
-        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-        scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
-                for(World world : Bukkit.getServer().getWorlds()) {
-                    world.setThundering(false);
-                    world.setStorm(false);
-                    world.setTime(3000);
-                }
-            }
-        }, 0L, 20L);
+    private void registerAllCommands() {
+        getCommand("game").setExecutor(new GameCommand());
+        getCommand("game").setTabCompleter(new GameCommand());
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+    }
 
+    public static Plugin getInstance() {
+        return instance;
     }
 
     @Override
@@ -73,39 +83,39 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
     }
 
-    public static Plugin getInstance(){
-        return instance;
+    @EventHandler
+    public void onCompassRightClick(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+
+        ItemStack itemInHand = player.getItemInHand();
+        if (itemInHand == null || itemInHand.getType() != Material.COMPASS) {
+            return;
+        }
+
+        ItemMeta meta = itemInHand.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) {
+            return;
+        }
+
+        String displayName = meta.getDisplayName();
+        String expectedName = ColorUtil.get("&f >>&e&l Вернуться в лобби&f <<");
+
+        if (!displayName.equals(expectedName)) {
+            return;
+        }
+
+        teleportToLobby(player);
     }
 
-    @EventHandler
-    public void onItemClick(PlayerInteractEvent e) {
-        if (e == null) return;
-        Player p = e.getPlayer();
-        if (e.getItem() == null) return;
-        if (!(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) return;
-        if (e.getItem().getType() == Material.COMPASS) {
-            teleportToLobby(p);
-        }
-    }
-    public static void teleportToLobby(Player p){
+    public static void teleportToLobby(Player p) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("Connect");
         out.writeUTF("lobby");
         p.sendPluginMessage(TheBridgeLCP.getInstance(), "BungeeCord", out.toByteArray());
-        p.sendMessage(ColorUtil.getMessage("&aВы были перемещены в лобби"));
+        p.sendMessage(ColorUtil.get("&aВы были перемещены в лобби"));
     }
-
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-    }
-
-    public static PlayerInfo getPlayerInfo(Player p){
-        for(PlayerInfo pi : players){
-            if(pi.getPlayer().equals(p)){
-                return pi;
-            }
-        }
-        return null;
     }
 }

@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class YmlParser {
-    public static Config parseMapConfig(File file){
+    public static Config parseMapConfig(File file) {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         Config mapConfig;
         try {
@@ -20,7 +20,7 @@ public class YmlParser {
         }
     }
 
-    public static Location parseLocation(World world, String position){
+    public static Location parseLocation(World world, String position) {
         String[] coordinates = position.split(", ");
         double X = Double.parseDouble(coordinates[0]);
         double Y = Double.parseDouble(coordinates[1]);

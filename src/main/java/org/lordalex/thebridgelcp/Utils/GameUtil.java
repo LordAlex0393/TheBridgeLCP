@@ -6,13 +6,9 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -21,8 +17,6 @@ import org.lordalex.thebridgelcp.PlayerInfo;
 import org.lordalex.thebridgelcp.TBTeam;
 import org.lordalex.thebridgelcp.TheBridgeLCP;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +28,8 @@ public class GameUtil {
     public static int PROTECTED_RADIUS = 7;
     public static int MAX_BUILD_HEIGHT;
     private static int timer = DELAY;
-    public static void start(){
+
+    public static void start() {
         TheBridgeLCP.game.setState(GameState.STARTING);
 
         for (Player all : Bukkit.getOnlinePlayers()) {
@@ -42,13 +37,13 @@ public class GameUtil {
         }
 
 
-       new BukkitRunnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
                 ScoreboardManager manager = Bukkit.getScoreboardManager();
                 org.bukkit.scoreboard.Scoreboard scoreboard = manager.getNewScoreboard();
 
-                Objective objective = scoreboard.registerNewObjective(ColorUtil.getMessage("&b&lThe Bridge"), "Test");
+                Objective objective = scoreboard.registerNewObjective(ColorUtil.get("&b&lThe Bridge"), "Test");
                 objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
                 int online = Bukkit.getOnlinePlayers().size();
@@ -57,9 +52,9 @@ public class GameUtil {
                 Score s6 = objective.getScore("Карта: " + ChatColor.YELLOW + TheBridgeLCP.config.getName());
                 Score s5 = objective.getScore("Игроков: " + ChatColor.YELLOW + online + "/" + TheBridgeLCP.config.getPlayersToStart());
                 Score s4 = objective.getScore("  ");
-                Score s3 = timer<10? objective.getScore("Начало через: " + ChatColor.YELLOW + "00:0" + timer) : objective.getScore("Начало через: " + ChatColor.YELLOW + "00:" + timer);
+                Score s3 = timer < 10 ? objective.getScore("Начало через: " + ChatColor.YELLOW + "00:0" + timer) : objective.getScore("Начало через: " + ChatColor.YELLOW + "00:" + timer);
                 Score s2 = objective.getScore(" ");
-                Score s1 = objective.getScore(ColorUtil.getMessage("&a&lneVimeWorld.ru"));
+                Score s1 = objective.getScore(ColorUtil.get("&a&lneVimeWorld.ru"));
                 s7.setScore(7);
                 s6.setScore(6);
                 s5.setScore(5);
@@ -71,12 +66,12 @@ public class GameUtil {
                 for (Player all : Bukkit.getOnlinePlayers()) {
                     all.setScoreboard(scoreboard);
                 }
-                if(TheBridgeLCP.game.getState() != GameState.STARTING){
+                if (TheBridgeLCP.game.getState() != GameState.STARTING) {
                     timer = DELAY;
                     interrupt();
                     cancel();
                 }
-                if(timer <= 0){
+                if (timer <= 0) {
                     timer = DELAY;
                     game();
                     cancel();
@@ -85,26 +80,26 @@ public class GameUtil {
             }
         }.runTaskTimer(TheBridgeLCP.getInstance(), 0, 20);
 
-        if(TheBridgeLCP.game.getState() != GameState.STARTING){
+        if (TheBridgeLCP.game.getState() != GameState.STARTING) {
             timer = DELAY;
         }
     }
 
-    public static void game(){
+    public static void game() {
         TheBridgeLCP.game.setState(GameState.GAME);
         int teamCount = TheBridgeLCP.teams.size();
 
         int i = 0;
-        for(Player p : Bukkit.getOnlinePlayers()){
+        for (Player p : Bukkit.getOnlinePlayers()) {
             PlayerInfo pi = new PlayerInfo(p);
             pi.setTeam(TheBridgeLCP.teams.get(i % teamCount));
             TheBridgeLCP.teams.get(i % teamCount).getPlayers().add(pi);
             TheBridgeLCP.players.add(pi);
-            p.setPlayerListName(ColorUtil.getMessage("&" + pi.getTeam().getColor() + p.getPlayerListName()));
+            p.setPlayerListName(ColorUtil.get("&" + pi.getTeam().getColor() + p.getPlayerListName()));
             p.setCustomName("§" + pi.getTeam().getColor() + p.getName());
             p.setCustomNameVisible(true);
             p.setGameMode(GameMode.SURVIVAL);
-            p.sendMessage(ColorUtil.getMessage("&fВы играете за &" + pi.getTeam().getColor() + pi.getTeam().getNames().split(", ")[1] + " команду"));
+            p.sendMessage(ColorUtil.get("&fВы играете за &" + pi.getTeam().getColor() + pi.getTeam().getNames().split(", ")[1] + " команду"));
 
             Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn());
             loc.setPitch(0);
@@ -118,9 +113,9 @@ public class GameUtil {
             scheduler.scheduleSyncRepeatingTask(TheBridgeLCP.getInstance(), new Runnable() {
                 @Override
                 public void run() {
-                    if(TheBridgeLCP.game.getState() == GameState.GAME){
-                        for(PlayerInfo allInfo : TheBridgeLCP.players){
-                            if(allInfo.getPlayer().getLocation().getY() <= 10){
+                    if (TheBridgeLCP.game.getState() == GameState.GAME) {
+                        for (PlayerInfo allInfo : TheBridgeLCP.players) {
+                            if (allInfo.getPlayer().getLocation().getY() <= 10) {
                                 allInfo.getPlayer().damage(10000);
                             }
                         }
@@ -129,21 +124,22 @@ public class GameUtil {
             }, 0L, 10L);
         }
     }
-    public static void interrupt(){
+
+    public static void interrupt() {
         TheBridgeLCP.game.setState(GameState.WAITING);
 
         int online = Bukkit.getOnlinePlayers().size();
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         org.bukkit.scoreboard.Scoreboard scoreboard = manager.getNewScoreboard();
 
-        Objective objective = scoreboard.registerNewObjective(ColorUtil.getMessage("&b&lThe Bridge"), "Test");
+        Objective objective = scoreboard.registerNewObjective(ColorUtil.get("&b&lThe Bridge"), "Test");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
         Score s5 = objective.getScore(" ");
         Score s4 = objective.getScore("Карта: " + ChatColor.YELLOW + TheBridgeLCP.config.getName());
         Score s3 = objective.getScore("Игроков: " + ChatColor.YELLOW + online + "/" + TheBridgeLCP.config.getPlayersToStart());
         Score s2 = objective.getScore(" ");
-        Score s1 = objective.getScore(ColorUtil.getMessage("&a&lneVimeWorld.ru"));
+        Score s1 = objective.getScore(ColorUtil.get("&a&lneVimeWorld.ru"));
         s5.setScore(5);
         s4.setScore(4);
         s3.setScore(3);
@@ -154,20 +150,20 @@ public class GameUtil {
         }
     }
 
-    public static void finish(TBTeam winner){
-        for(Entity current : Bukkit.getServer().getWorld("world").getEntities()) {//loop through the list
+    public static void finish(TBTeam winner) {
+        for (Entity current : Bukkit.getServer().getWorld("world").getEntities()) {//loop through the list
             if (current instanceof Item) {//make sure we aren't deleting mobs/players
                 current.remove();//remove it
             }
         }
 
-        for(PlayerInfo pi : TheBridgeLCP.players){
+        for (PlayerInfo pi : TheBridgeLCP.players) {
             Player p = pi.getPlayer();
             Location locT = YmlParser.parseLocation(p.getWorld(), TheBridgeLCP.config.getLobby());
             p.teleport(locT);
             p.getInventory().clear();
             p.getInventory().setArmorContents(null);
-            for(PotionEffect pe : p.getActivePotionEffects()){
+            for (PotionEffect pe : p.getActivePotionEffects()) {
                 p.removePotionEffect(pe.getType());
             }
             p.setHealth(20);
@@ -176,28 +172,27 @@ public class GameUtil {
         //String line = "&b&l-----------------------";
         String line = "&b&l-------------------------";
         ArrayList<String> finishStrings = new ArrayList<>();
-        finishStrings.add(ColorUtil.getMessage(line));
-        finishStrings.add(ColorUtil.getMessage("&e&l   The Bridge"));
-        finishStrings.add(ColorUtil.getMessage(" "));
-        if(winner == null){
-            finishStrings.add(ColorUtil.getMessage(" &f&l НИЧЬЯ"));
+        finishStrings.add(ColorUtil.get(line));
+        finishStrings.add(ColorUtil.get("&e&l   The Bridge"));
+        finishStrings.add(ColorUtil.get(" "));
+        if (winner == null) {
+            finishStrings.add(ColorUtil.get(" &f&l НИЧЬЯ"));
+        } else {
+            finishStrings.add(ColorUtil.get(" &" + winner.getColor() + winner.getNames().split(", ")[2] + " победили!"));
         }
-        else{
-            finishStrings.add(ColorUtil.getMessage(" &" + winner.getColor() + winner.getNames().split(", ")[2] + " победили!"));
-        }
-        finishStrings.add(ColorUtil.getMessage(""));
-        finishStrings.add(ColorUtil.getMessage("&f Лучшие игроки:"));
+        finishStrings.add(ColorUtil.get(""));
+        finishStrings.add(ColorUtil.get("&f Лучшие игроки:"));
         int i = 1;
         int score = SCORES_TO_WIN;
         HashSet<PlayerInfo> set = new HashSet<>();
-        while((i <= 3) && (score > 0)){
-            for(PlayerInfo pi : TheBridgeLCP.players){
-                if(!(set.contains(pi))){
-                    if(pi.getPoints() == score){
+        while ((i <= 3) && (score > 0)) {
+            for (PlayerInfo pi : TheBridgeLCP.players) {
+                if (!(set.contains(pi))) {
+                    if (pi.getPoints() == score) {
                         String pointStr = "очко";
-                        if((score >= 2) && (score <= 4)) pointStr = "очка";
-                        else if(score > 4) pointStr = "очков";
-                        finishStrings.add(ColorUtil.getMessage(" &f" + i + ". &" + pi.getTeam().getColor() + pi.getPlayer().getName() + "&c (" + score + " " + pointStr + ")"));
+                        if ((score >= 2) && (score <= 4)) pointStr = "очка";
+                        else if (score > 4) pointStr = "очков";
+                        finishStrings.add(ColorUtil.get(" &f" + i + ". &" + pi.getTeam().getColor() + pi.getPlayer().getName() + "&c (" + score + " " + pointStr + ")"));
                         set.add(pi);
                         i++;
                     }
@@ -205,42 +200,42 @@ public class GameUtil {
             }
             score--;
         }
-        finishStrings.add(ColorUtil.getMessage(line));
+        finishStrings.add(ColorUtil.get(line));
 
 
-        for(Player p : Bukkit.getOnlinePlayers()){
+        for (Player p : Bukkit.getOnlinePlayers()) {
             Bukkit.getWorld("world").playSound(YmlParser.parseLocation(Bukkit.getWorld("world"), TheBridgeLCP.config.getLobby()), Sound.LEVEL_UP, 3.0F, 1F);
-            for(String str : finishStrings){
+            for (String str : finishStrings) {
                 p.sendMessage(str);
             }
             ItemStack compassStack = new ItemStack(Material.COMPASS, 1);
             ItemMeta compassMeta = compassStack.getItemMeta();
-            compassMeta.setDisplayName(ColorUtil.getMessage("&f >>&e&l Вернуться в лобби&f <<"));
+            compassMeta.setDisplayName(ColorUtil.get("&f >>&e&l Вернуться в лобби&f <<"));
             compassStack.setItemMeta(compassMeta);
             p.getInventory().setItem(8, compassStack);
         }
-        new BukkitRunnable(){
+        new BukkitRunnable() {
             @Override
-            public void run(){
-                for(PlayerInfo pi : TheBridgeLCP.players){
+            public void run() {
+                for (PlayerInfo pi : TheBridgeLCP.players) {
                     Player p = pi.getPlayer();
-                    p.sendMessage(ColorUtil.getMessage("&a&l-------------------------"));
-                    p.sendMessage(ColorUtil.getMessage("&e&l   Ваша статистика:"));
-                    p.sendMessage(ColorUtil.getMessage(" "));
-                    p.sendMessage(ColorUtil.getMessage("&e Очков&f: " + pi.getPoints()));
-                    p.sendMessage(ColorUtil.getMessage("&e Убийств&f: " + pi.getKills()));
-                    p.sendMessage(ColorUtil.getMessage("&e Смертей&f: " + pi.getDeaths()));
-                    p.sendMessage(ColorUtil.getMessage("&a&l-------------------------"));
+                    p.sendMessage(ColorUtil.get("&a&l-------------------------"));
+                    p.sendMessage(ColorUtil.get("&e&l   Ваша статистика:"));
+                    p.sendMessage(ColorUtil.get(" "));
+                    p.sendMessage(ColorUtil.get("&e Очков&f: " + pi.getPoints()));
+                    p.sendMessage(ColorUtil.get("&e Убийств&f: " + pi.getKills()));
+                    p.sendMessage(ColorUtil.get("&e Смертей&f: " + pi.getDeaths()));
+                    p.sendMessage(ColorUtil.get("&a&l-------------------------"));
                 }
                 Bukkit.getWorld("world").playSound(YmlParser.parseLocation(Bukkit.getWorld("world"), TheBridgeLCP.config.getLobby()), Sound.ORB_PICKUP, 3.0F, 1F);
             }
         }.runTaskLater(TheBridgeLCP.getInstance(), 50);
         TheBridgeLCP.game.setState(GameState.ENDING);
 
-        new BukkitRunnable(){
+        new BukkitRunnable() {
             @Override
-            public void run(){
-                for(Player p : Bukkit.getOnlinePlayers()){
+            public void run() {
+                for (Player p : Bukkit.getOnlinePlayers()) {
                     TheBridgeLCP.teleportToLobby(p);
                 }
 //                new BukkitRunnable(){
@@ -261,28 +256,29 @@ public class GameUtil {
         }.runTaskLater(TheBridgeLCP.getInstance(), 300);
 
     }
-    public static void updateGamingScoreboard(PlayerInfo pi){
+
+    public static void updateGamingScoreboard(PlayerInfo pi) {
         ArrayList<String> scores = new ArrayList<>();
         scores.add("    ");
-        for(TBTeam team : TheBridgeLCP.teams){
+        for (TBTeam team : TheBridgeLCP.teams) {
             String activeScores = new String(new char[team.getPoints()]).replace("\0", "⬤");
-            String inactiveScores = new String(new char[SCORES_TO_WIN-team.getPoints()]).replace("\0", "⬤");
-            if(pi.getTeam().equals(team)){
-                scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getNames().charAt(0) + " &" + team.getColor() + activeScores + "&7" + inactiveScores + "&a <= Вы"));
-            }
-            else{
-                scores.add(ColorUtil.getMessage("&" + team.getColor() + "&l" + team.getNames().charAt(0) + " &" + team.getColor() + activeScores + "&7" + inactiveScores));
+            String inactiveScores = new String(new char[SCORES_TO_WIN - team.getPoints()]).replace("\0", "⬤");
+            if (pi.getTeam().equals(team)) {
+                scores.add(ColorUtil.get("&" + team.getColor() + "&l" + team.getNames().charAt(0) + " &" + team.getColor() + activeScores + "&7" + inactiveScores + "&a <= Вы"));
+            } else {
+                scores.add(ColorUtil.get("&" + team.getColor() + "&l" + team.getNames().charAt(0) + " &" + team.getColor() + activeScores + "&7" + inactiveScores));
             }
         }
         scores.add("   ");
-        scores.add(ColorUtil.getMessage("&fУбийств:&e " + pi.getKills()));
-        scores.add(ColorUtil.getMessage("&fОчков:&e " + pi.getPoints()));
+        scores.add(ColorUtil.get("&fУбийств:&e " + pi.getKills()));
+        scores.add(ColorUtil.get("&fОчков:&e " + pi.getPoints()));
         scores.add("  ");
-        scores.add(ColorUtil.getMessage("&fКарта:&e " + TheBridgeLCP.config.getName()));
+        scores.add(ColorUtil.get("&fКарта:&e " + TheBridgeLCP.config.getName()));
         Scoreboard scoreboard = CustomScoreboard.createScoreboard(scores);
         pi.getPlayer().setScoreboard(scoreboard);
     }
-    public static void updateWaitingScoreboard(Player p, int online){
+
+    public static void updateWaitingScoreboard(Player p, int online) {
         ArrayList<String> scores = new ArrayList<>();
         scores.add("  ");
         scores.add("Карта: " + ChatColor.YELLOW + TheBridgeLCP.config.getName());
@@ -291,12 +287,12 @@ public class GameUtil {
         p.setScoreboard(scoreboard);
     }
 
-    public static void restartRound(){
+    public static void restartRound() {
         int boxHeight = 4;
-        for(TBTeam team : TheBridgeLCP.teams){
+        for (TBTeam team : TheBridgeLCP.teams) {
             Location loc = YmlParser.parseLocation(Bukkit.getServer().getWorld("world"), team.getSpawn());
             List<Location> area = new ArrayList<>();
-            int y = boxHeight-1;
+            int y = boxHeight - 1;
             area.add(loc.clone().add(0, y, 0));
             area.add(loc.clone().add(1, y, 0));
             area.add(loc.clone().add(0, y, 1));
@@ -307,7 +303,7 @@ public class GameUtil {
             area.add(loc.clone().add(-1, y, 0));
             area.add(loc.clone().add(-1, y, -1));
 
-            for(int i = 0; i < 5; i++){
+            for (int i = 0; i < 5; i++) {
                 area.add(loc.clone().add(-2, y, -2));
                 area.add(loc.clone().add(-2, y, -1));
                 area.add(loc.clone().add(-2, y, 0));
@@ -338,7 +334,7 @@ public class GameUtil {
             area.add(loc.clone().add(-1, y, 0));
             area.add(loc.clone().add(-1, y, -1));
 
-            for(Location l : area){
+            for (Location l : area) {
                 ItemStack glassStack = new ItemStack(Material.GLASS, 1, (byte) team.getWool());
                 Block block = l.getWorld().getBlockAt(l);
                 block.setType(Material.GLASS);
@@ -346,19 +342,19 @@ public class GameUtil {
                 //l.getWorld().getBlockAt(l)
             }
 
-            new BukkitRunnable(){
+            new BukkitRunnable() {
                 @Override
-                public void run(){
-                    for(Location l : area){
+                public void run() {
+                    for (Location l : area) {
                         l.getWorld().getBlockAt(l).setType(Material.AIR);
                     }
                 }
             }.runTaskLater(TheBridgeLCP.getInstance(), 100);
         }
-        for(PlayerInfo pi : TheBridgeLCP.players){
+        for (PlayerInfo pi : TheBridgeLCP.players) {
             Player p = pi.getPlayer();
             p.setHealth(20);
-            Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()).add(0, boxHeight+1, 0);
+            Location loc = YmlParser.parseLocation(p.getWorld(), pi.getTeam().getSpawn()).add(0, boxHeight + 1, 0);
             loc.setPitch(0);
             loc.setYaw(TheBridgeLCP.config.getTeams().get(pi.getTeam().getId()).getYaw());
             p.teleport(loc);
@@ -366,9 +362,10 @@ public class GameUtil {
 
         }
     }
-    public static void giveKit(PlayerInfo pi){
+
+    public static void giveKit(PlayerInfo pi) {
         Player p = pi.getPlayer();
-        for(PotionEffect pe : p.getActivePotionEffects()){
+        for (PotionEffect pe : p.getActivePotionEffects()) {
             p.removePotionEffect(pe.getType());
         }
         //p.getInventory().clear();
@@ -381,10 +378,10 @@ public class GameUtil {
         pickaxeMeta.addEnchant(Enchantment.DIG_SPEED, 2, false);
         pickaxeStack.setItemMeta(pickaxeMeta);
         pickaxeStack.setDurability((short) -1);
-        ItemStack appleStack = new ItemStack(Material.GOLDEN_APPLE, TheBridgeLCP.players.size()/2);
+        ItemStack appleStack = new ItemStack(Material.GOLDEN_APPLE, TheBridgeLCP.players.size() / 2);
         ItemStack arrowStack = new ItemStack(Material.ARROW, TheBridgeLCP.players.size());
         ItemStack clayStack = new ItemStack(Material.STAINED_CLAY, 64, (byte) pi.getTeam().getWool());
-        if(!(p.getInventory().contains(Material.IRON_SWORD))){
+        if (!(p.getInventory().contains(Material.IRON_SWORD))) {
             p.getInventory().setItem(0, swordStack);
             p.getInventory().setItem(1, bowStack);
             p.getInventory().setItem(2, pickaxeStack);
@@ -392,40 +389,36 @@ public class GameUtil {
             p.getInventory().setItem(4, clayStack);
             p.getInventory().setItem(5, arrowStack);
             p.getInventory().setItem(6, appleStack);
-        }
-        else{
+        } else {
             int clayCount = 0;
             int arrowCount = 0;
             int appleCount = 0;
-            for(ItemStack is : p.getInventory().getContents()){
-                if(is == null) continue;
-                if(is.getType()==Material.STAINED_CLAY ){
-                    if(is.getData().getData() == clayStack.getData().getData()){
+            for (ItemStack is : p.getInventory().getContents()) {
+                if (is == null) continue;
+                if (is.getType() == Material.STAINED_CLAY) {
+                    if (is.getData().getData() == clayStack.getData().getData()) {
                         is.setAmount(64);
                         clayCount++;
-                    }
-                    else{
+                    } else {
                         p.getInventory().removeItem(is);
                     }
-                }
-                else if(is.getType()==Material.ARROW){
-                    is.setAmount(TheBridgeLCP.players.size()*2);
+                } else if (is.getType() == Material.ARROW) {
+                    is.setAmount(TheBridgeLCP.players.size() * 2);
                     arrowCount++;
-                }
-                else if(is.getType()==Material.GOLDEN_APPLE){
-                    is.setAmount(TheBridgeLCP.players.size()*2);
+                } else if (is.getType() == Material.GOLDEN_APPLE) {
+                    is.setAmount(TheBridgeLCP.players.size() * 2);
                     appleCount++;
                 }
             }
-            while(clayCount < 2){
+            while (clayCount < 2) {
                 p.getInventory().addItem(clayStack);
                 clayCount++;
             }
-            while(arrowCount < 1){
+            while (arrowCount < 1) {
                 p.getInventory().addItem(arrowStack);
                 arrowCount++;
             }
-            while(appleCount < 1){
+            while (appleCount < 1) {
                 p.getInventory().addItem(appleStack);
                 appleCount++;
             }
@@ -452,8 +445,8 @@ public class GameUtil {
         chestplateStack.setDurability((short) -1);
         p.getInventory().setChestplate(chestplateStack);
     }
-    public static Color translateChatColorToColor(String color)
-    {
+
+    public static Color translateChatColorToColor(String color) {
         switch (color.toUpperCase()) {
             case "AQUA":
                 return Color.AQUA;
