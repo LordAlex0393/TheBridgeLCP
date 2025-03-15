@@ -95,6 +95,7 @@ public class GameUtil {
             pi.setTeam(TheBridgeLCP.teams.get(i % teamCount));
             TheBridgeLCP.teams.get(i % teamCount).getPlayers().add(pi);
             TheBridgeLCP.players.add(pi);
+            PlayerManager.addPlayerInfo(p, pi);
             p.setPlayerListName(ColorUtil.get("&" + pi.getTeam().getColor() + p.getPlayerListName()));
             p.setCustomName("§" + pi.getTeam().getColor() + p.getName());
             p.setCustomNameVisible(true);
