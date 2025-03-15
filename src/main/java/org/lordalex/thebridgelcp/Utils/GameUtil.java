@@ -59,7 +59,7 @@ public class GameUtil {
                 Score s4 = objective.getScore("  ");
                 Score s3 = timer<10? objective.getScore("Начало через: " + ChatColor.YELLOW + "00:0" + timer) : objective.getScore("Начало через: " + ChatColor.YELLOW + "00:" + timer);
                 Score s2 = objective.getScore(" ");
-                Score s1 = objective.getScore(ColorUtil.getMessage("&a&lVimeWorld.ru"));
+                Score s1 = objective.getScore(ColorUtil.getMessage("&a&lneVimeWorld.ru"));
                 s7.setScore(7);
                 s6.setScore(6);
                 s5.setScore(5);
@@ -143,7 +143,7 @@ public class GameUtil {
         Score s4 = objective.getScore("Карта: " + ChatColor.YELLOW + TheBridgeLCP.config.getName());
         Score s3 = objective.getScore("Игроков: " + ChatColor.YELLOW + online + "/" + TheBridgeLCP.config.getPlayersToStart());
         Score s2 = objective.getScore(" ");
-        Score s1 = objective.getScore(ColorUtil.getMessage("&a&lVimeWorld.ru"));
+        Score s1 = objective.getScore(ColorUtil.getMessage("&a&lneVimeWorld.ru"));
         s5.setScore(5);
         s4.setScore(4);
         s3.setScore(3);
@@ -381,8 +381,8 @@ public class GameUtil {
         pickaxeMeta.addEnchant(Enchantment.DIG_SPEED, 2, false);
         pickaxeStack.setItemMeta(pickaxeMeta);
         pickaxeStack.setDurability((short) -1);
-        ItemStack appleStack = new ItemStack(Material.GOLDEN_APPLE, TheBridgeLCP.players.size()*2);
-        ItemStack arrowStack = new ItemStack(Material.ARROW, TheBridgeLCP.players.size()*2);
+        ItemStack appleStack = new ItemStack(Material.GOLDEN_APPLE, TheBridgeLCP.players.size()/2);
+        ItemStack arrowStack = new ItemStack(Material.ARROW, TheBridgeLCP.players.size());
         ItemStack clayStack = new ItemStack(Material.STAINED_CLAY, 64, (byte) pi.getTeam().getWool());
         if(!(p.getInventory().contains(Material.IRON_SWORD))){
             p.getInventory().setItem(0, swordStack);
@@ -399,7 +399,7 @@ public class GameUtil {
             int appleCount = 0;
             for(ItemStack is : p.getInventory().getContents()){
                 if(is == null) continue;
-                if(is.getType()==Material.STAINED_CLAY){
+                if(is.getType()==Material.STAINED_CLAY ){
                     if(is.getData().getData() == clayStack.getData().getData()){
                         is.setAmount(64);
                         clayCount++;

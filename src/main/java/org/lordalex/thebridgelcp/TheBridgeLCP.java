@@ -42,7 +42,8 @@ public final class TheBridgeLCP extends JavaPlugin implements PluginMessageListe
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
         game = new Game(this, GameState.WAITING);
 
-        File file = new File("plugins\\TheBridgeLCP\\config.yml");
+        //File file = new File("plugins\\TheBridgeLCP\\config.yml");
+        File file = new File("config.yml");
         config = YmlParser.parseMapConfig(file);
 
 

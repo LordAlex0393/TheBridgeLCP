@@ -21,6 +21,7 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.util.Vector;
 import org.lordalex.thebridgelcp.Game;
 import org.lordalex.thebridgelcp.PlayerInfo;
 import org.lordalex.thebridgelcp.TBTeam;
@@ -216,6 +217,7 @@ public class Events implements Listener {
         if(TheBridgeLCP.game.getState() == GameState.GAME){
             Player victim = e.getEntity().getPlayer();
             PlayerInfo victimInfo = TheBridgeLCP.getPlayerInfo(victim);
+            victim.setVelocity(new Vector(0, 0, 0));
             if(e.getEntity().getKiller() instanceof Player){
                 Player killer = e.getEntity().getKiller();
                 PlayerInfo killerInfo = TheBridgeLCP.getPlayerInfo(killer);
@@ -271,8 +273,15 @@ public class Events implements Listener {
             }
         }
         else{
-            for(Player all : Bukkit.getOnlinePlayers()){
-                all.sendMessage(ColorUtil.getMessage("&7" + p.getName() + ": &f" + msg));
+            if(p.isOp()){
+                for(Player all : Bukkit.getOnlinePlayers()){
+                    all.sendMessage(ColorUtil.getMessage("&3&l[Гл. Админ] " + p.getName() + ": &f" + msg));
+                }
+            }
+            else{
+                for(Player all : Bukkit.getOnlinePlayers()){
+                    all.sendMessage(ColorUtil.getMessage("&7" + p.getName() + ": &f" + msg));
+                }
             }
         }
     }
